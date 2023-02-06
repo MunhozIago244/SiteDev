@@ -1,5 +1,11 @@
 body {
-  background: black;
+    background-color: #525050;
+    width: 100%;
+    height: auto;
+    bottom: 0px;
+    top: 0px;
+    left: 0;
+    position: absolute;
 }
 
 h1 {
@@ -56,7 +62,7 @@ h1 {
  
  /*Image*/
  .card-avatar {
-  --size: 60px;
+  --size: 5em;
   background: linear-gradient(to top, #c4c1f1 0%, #97fcf7 100%);
   width: var(--size);
   height: var(--size);
@@ -66,13 +72,13 @@ h1 {
  }
 
  .image-avatar{
-  --size: 60px;
+  --size: 4.5em;
   background: linear-gradient(to top, #c4c1f1 0%, #97fcf7 100%);
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
   transition: transform .2s ease;
-  margin-bottom: 1rem;
+  margin: 0.25em;
 
  }
  
@@ -92,7 +98,7 @@ h1 {
  
  .card-social__item svg {
   display: absolute;
-  margin-right: 1em;
+  margin-right: 0.5em;
   height: 2em;
   width: 2em;
   fill: #515F65;
