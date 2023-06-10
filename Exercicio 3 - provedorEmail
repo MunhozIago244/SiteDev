@@ -1,0 +1,72 @@
+create database provedor_email;
+use provedor_email;
+
+create table usuario (
+    id int primary key auto_increment,
+    nome varchar(50) not null,
+    email varchar(50) not null unique,
+    senha varchar(50) not null
+);
+
+create table email (
+    id int primary key auto_increment,
+    assunto varchar(50) not null,
+    corpo text,
+    data_envio datetime,
+    status enum('rascunho', 'enviando', 'enviado') default 'rascunho',
+    remetente_id int not null,
+    foreign key (remetente_id) references usuario(id)
+);
+
+create table destinatario (
+    id int primary key auto_increment,
+    email_id int not null,
+    destinatario_id int not null,
+    foreign key (email_id) references email(id),
+    foreign key (destinatario_id) references usuario(id)
+);
+
+create table anexo (
+    id int primary key auto_increment,
+    nome_arquivo varchar(50) not null,
+    tamanho int not null,
+    link varchar(100) not null,
+    email_id int not null,
+    foreign key (email_id) references email(id)
+);
+
+insert into usuario (nome, email, senha) values 
+('joão', 'joao@mail.com', '1234'),
+('maria', 'maria@mail.com', '5678'),
+('pedro', 'pedro@mail.com', '9012');
+
+insert into email (assunto, corpo, data_envio, remetente_id) values 
+('teste de e-mail 1', 'este é um e-mail de teste.', '2023-03-09 10:00:00', 1),
+('teste de e-mail 2', 'este é outro e-mail de teste.', '2023-03-08 15:00:00', 2);
+
+insert into destinatario (email_id, destinatario_id) values 
+(1, 2),
+(1, 3),
+(2, 1),
+(2, 3);
+
+insert into anexo (nome_arquivo, tamanho, link, email_id) values 
+('anexo1.pdf', 1000, 'https://storage.com/anexo1.pdf', 1),
+('anexo2.doc', 2000, 'https://storage.com/anexo2.doc', 1);
+
+select * from email where status = 'rascunho' and date(data_envio) = date(now()) - interval 1 day;
+
+select e.*
+from email e
+left join anexo a on e.id = a.email_id
+where e.status = 'rascunho'
+and (select count(*) from destinatario d where d.email_id = e.id) > 4
+and a.id is null;
+
+select count(*) from email where status = 'enviando';
+
+select u.*, e.*, d.*, a.*
+from usuario u
+join email e on u.id = e.remetente_id
+left join destinatario d on e.id = d.email_id
+left join anexo a on e.id = a.email_id;

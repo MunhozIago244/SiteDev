@@ -1,0 +1,153 @@
+create database exercicio_licensas;
+use exercicio_licensas;
+
+SELECT COUNT(*) AS Clientes FROM lcliente;
+
+SELECT * FROM exercicio_licensas.llicenca
+WHERE MONTH(DtAquisicao) = 9
+ORDER BY YEAR(DtAquisicao), DtAquisicao;
+
+SELECT * FROM exercicio_licensas.llicenca
+WHERE MONTH(DtAquisicao) = 5 AND YEAR(DtAquisicao) = 2007;
+
+SELECT idTIPO_Empresa, DescricaoTipo, LEFT(DescricaoTipo, 5) AS primeira_letra
+FROM ltipo_empresa
+ORDER BY DescricaoTipo ASC;
+
+SELECT idTIPO_Empresa, DescricaoTipo, RIGHT(DescricaoTipo, 5) AS ultima_letra
+FROM ltipo_empresa
+ORDER BY DescricaoTipo DESC;
+
+SELECT idTIPO_Empresa, DescricaoTipo, SUBSTRING(DescricaoTipo, 6, 5) AS letras_pos_6_a_10
+FROM ltipo_empresa;
+
+SELECT Nome_RazaoSocial, LENGTH(Nome_RazaoSocial) AS tamanho_nome
+FROM lcliente
+ORDER BY Nome_RazaoSocial;
+
+SELECT NumLicenca, DtAquisicao, DATEDIFF(NOW(), DtAquisicao) AS dias_decorridos
+FROM llicenca;
+
+SELECT UPPER(NomeSetor) AS setor_maiusculo, LOWER(NomeSetor) AS setor_minusculo 
+FROM lsetor;
+
+SELECT lsoftware.NomeSoftware, lversao.Versao
+FROM exercicio_licensas.lsoftware
+JOIN exercicio_licensas.lversao ON lsoftware.idSOFTWARE = lversao.idSOFTWARE_FK
+ORDER BY lsoftware.NomeSoftware ASC, lversao.Versao ASC;
+
+SELECT c.*, te.DescricaoTipo, ls.NomeSetor
+FROM lcliente c
+INNER JOIN ltipo_empresa te ON c.idTIPO_Empresa_FK = te.idTIPO_Empresa
+INNER JOIN lsetor ls ON c.idSETOR_FK = ls.idSETOR
+ORDER BY te.DescricaoTipo, ls.NomeSetor;
+
+SELECT lc.idCLIENTE, lc.Nome_RazaoSocial, ll.NumLicenca, ll.DtAquisicao, ll.ValorAquisicao
+FROM lcliente lc
+JOIN llicenca ll ON lc.idCLIENTE = ll.idCLIENTE_FK;
+
+SELECT lc.idCLIENTE, lc.Nome_RazaoSocial, lt.DescricaoTipo, ls.NomeSetor
+FROM lcliente lc
+INNER JOIN lsetor ls ON lc.idSETOR_FK = ls.idSETOR
+INNER JOIN ltipo_empresa lt ON lc.idTIPO_Empresa_FK = lt.idTIPO_Empresa
+WHERE lc.UF IN ('SP', 'RS', 'PR', 'MG')
+ORDER BY lc.idCLIENTE;
+
+SELECT S.nome AS software, V.versao, C.nome AS cliente, T.descricao AS tipo_cliente, 
+       S.nome_setor AS setor_cliente, L.numero, L.data_aquisicao, L.valor
+FROM Software AS S
+INNER JOIN Versao AS V ON V.id_software = S.id
+INNER JOIN Licenca AS L ON L.id_versao = V.id
+INNER JOIN Cliente AS C ON C.id = L.id_cliente
+INNER JOIN TipoCliente AS T ON T.id = C.id_tipo
+INNER JOIN SetorCliente AS SC ON SC.id = C.id_setor
+WHERE C.uf IN ('SP', 'RS', 'PR', 'MG')
+ORDER BY S.nome, V.versao, L.data_aquisicao, C.nome;
+
+SELECT s.NomeSoftware, v.Versao, c.Nome_RazaoSocial, t.DescricaoTipo, st.NomeSetor, l.NumLicenca, l.DtAquisicao, l.ValorAquisicao
+FROM llicenca l
+INNER JOIN lversao v ON l.idSOFTWARE_FK_FK = v.idSOFTWARE_FK AND l.Versao_FK = v.Versao
+INNER JOIN lsoftware s ON v.idSOFTWARE_FK = s.idSOFTWARE
+INNER JOIN lcliente c ON l.idCLIENTE_FK = c.idCLIENTE
+INNER JOIN ltipo_empresa t ON c.idTIPO_Empresa_FK = t.idTIPO_Empresa
+INNER JOIN lsetor st ON c.idSETOR_FK = st.idSETOR
+ORDER BY s.NomeSoftware, v.Versao, l.DtAquisicao, c.Nome_RazaoSocial;
+
+
+SELECT COUNT(NumLicenca) AS TotalLicencasVendidas
+FROM llicenca;
+
+SELECT SUM(ValorAquisicao) AS ValorTotal, AVG(ValorAquisicao) AS ValorMedio, MAX(ValorAquisicao) AS MaiorValor, MIN(ValorAquisicao) AS MenorValor
+FROM llicenca;
+
+SELECT COUNT(*) AS TotalClientesFarmaceutica
+FROM lcliente
+WHERE idSETOR_FK = (
+    SELECT idSETOR
+    FROM lsetor
+    WHERE NomeSetor = 'farmacautica'
+);
+
+SELECT lcliente.Nome_RazaoSocial AS Cliente, COUNT(llicenca.NumLicenca) AS Quantidade_Licencas
+FROM lcliente
+JOIN llicenca ON lcliente.idCLIENTE = llicenca.idCLIENTE_FK
+JOIN lsetor ON lcliente.idSETOR_FK = lsetor.idSETOR
+WHERE lsetor.NomeSetor = 'farmacautica'
+GROUP BY lcliente.Nome_RazaoSocial
+ORDER BY lcliente.Nome_RazaoSocial;
+
+SELECT lc.Nome_RazaoSocial, SUM(ll.ValorAquisicao) AS ValorTotal, AVG(ll.ValorAquisicao) AS ValorMedio
+FROM lcliente lc
+INNER JOIN llicenca ll ON lc.idCLIENTE = ll.idCLIENTE_FK
+GROUP BY lc.Nome_RazaoSocial
+ORDER BY lc.Nome_RazaoSocial;
+
+SELECT ls.NomeSetor, SUM(ll.ValorAquisicao) AS ValorTotal
+FROM llicenca ll
+JOIN lcliente lc ON lc.idCLIENTE = ll.idCLIENTE_FK
+JOIN lsetor ls ON ls.idSETOR = lc.idSETOR_FK
+GROUP BY ls.NomeSetor
+ORDER BY ls.NomeSetor;
+
+SELECT ltipo_empresa.DescricaoTipo AS TipoEmpresa, SUM(llicenca.ValorAquisicao) AS ValorTotal
+FROM llicenca
+INNER JOIN lcliente ON llicenca.idCLIENTE_FK = lcliente.idCLIENTE
+INNER JOIN ltipo_empresa ON lcliente.idTIPO_Empresa_FK = ltipo_empresa.idTIPO_Empresa
+GROUP BY ltipo_empresa.DescricaoTipo
+ORDER BY TipoEmpresa;
+
+SELECT 
+    CASE 
+        WHEN ltipo_empresa.DescricaoTipo = 'Pessoa Fasica' THEN 'Pessoa Fasica'
+        WHEN ltipo_empresa.DescricaoTipo = 'Pessoa Juradica' AND lcliente.UF = 'BR' THEN 'Pessoa Juradica'
+        WHEN ltipo_empresa.DescricaoTipo = 'PF Estrangeira' AND lcliente.UF != 'BR' THEN 'PF Estrangeira'
+        WHEN ltipo_empresa.DescricaoTipo = 'PJ Estrangeira' AND lcliente.UF != 'BR' THEN 'PJ Estrangeira'
+        WHEN ltipo_empresa.DescricaoTipo = 'Empresa Pablica' THEN 'Empresa Pablica'
+        ELSE 'argao Govern.' 
+    END AS tipo_empresa,
+    SUM(llicenca.ValorAquisicao) AS total_valor_licencas
+FROM ltipo_empresa
+LEFT JOIN lcliente ON ltipo_empresa.idTIPO_Empresa = lcliente.idTIPO_Empresa_FK
+LEFT JOIN llicenca ON lcliente.idCLIENTE = llicenca.idCLIENTE_FK
+GROUP BY tipo_empresa;
+
+SELECT ls.NomeSoftware, lv.Versao, SUM(ll.ValorAquisicao) AS 'ValorTotalLicencas'
+FROM llicenca ll
+INNER JOIN lversao lv ON lv.idSOFTWARE_FK = ll.idSOFTWARE_FK_FK AND lv.Versao = ll.Versao_FK
+INNER JOIN lsoftware ls ON ls.idSOFTWARE = lv.idSOFTWARE_FK
+GROUP BY ls.NomeSoftware, lv.Versao
+ORDER BY ls.NomeSoftware, lv.Versao;
+
+SELECT lc.Nome_RazaoSocial AS Empresa, ls.NomeSoftware AS Software, COUNT(*) AS Licencas
+FROM llicenca ll
+JOIN lcliente lc ON ll.idCLIENTE_FK = lc.idCLIENTE
+JOIN lversao lv ON ll.idSOFTWARE_FK_FK = lv.idSOFTWARE_FK AND ll.Versao_FK = lv.Versao
+JOIN lsoftware ls ON lv.idSOFTWARE_FK = ls.idSOFTWARE
+GROUP BY lc.Nome_RazaoSocial, ls.NomeSoftware;
+
+SELECT lcliente.NomeFantasia AS NomeCliente, COUNT(*) AS QuantidadeLicencas
+FROM llicenca
+INNER JOIN lcliente ON llicenca.idCLIENTE_FK = lcliente.idCLIENTE
+GROUP BY lcliente.idCLIENTE
+HAVING COUNT(*) > 10
+ORDER BY QuantidadeLicencas DESC;

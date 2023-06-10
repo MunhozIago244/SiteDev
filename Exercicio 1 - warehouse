@@ -1,0 +1,156 @@
+create database warehouse;
+use warehouse;
+
+create table product_lines (
+  id bigint not null auto_increment primary key,
+  text_description text not null,
+  html_description varchar(250) not null,
+  image text(300) not null,
+  unique (image(300))
+);
+
+create table payments (
+  id bigint not null auto_increment primary key,
+  customer_number bigint not null,
+  check_number bigint not null unique,
+  payment_date timestamp default current_timestamp,
+  amount decimal(10,2) not null,
+  foreign key (customer_number) references customers(customer_number)
+);
+
+create table offices (
+  id bigint auto_increment not null primary key,
+  phone varchar(14) not null,
+  address_line_1 varchar(150) not null,
+  address_line_2 varchar(150),
+  city varchar(100) not null,
+  state varchar(100) not null,
+  country varchar(100) not null,
+  postal_code varchar(10) not null,
+  territory varchar(150)
+);
+
+create table employees (
+  id bigint auto_increment not null primary key,
+  last_name varchar(50) not null,
+  first_name varchar(50) not null,
+  extension varchar(150) not null,
+  email varchar(100) not null,
+  office_id bigint not null,
+  reports_to bigint,
+  job_title varchar(50) not null,
+  foreign key (office_id) references offices(id),
+  constraint fk_reports_to foreign key (reports_to) references employees(id)
+);
+
+create table products (
+  id bigint not null primary key auto_increment,
+  product_name varchar(150) not null,
+  product_line_id bigint not null,
+  product_scale varchar(150) not null,
+  product_vendor varchar(100) not null,
+  product_description text not null,
+  quantity_in_stock bigint not null,
+  buy_price decimal(10,2) not null,
+  msrp varchar(150),
+  foreign key (product_line_id) references product_lines(id)
+);
+
+create table order_details (
+  id bigint not null primary key auto_increment,
+  order_number bigint not null,
+  product_id bigint not null,
+  quantity_ordered bigint not null,
+  price_each decimal(10,2) not null,
+  order_line_number bigint not null,
+  foreign key (order_number) references orders(order_number),
+  foreign key (product_id) references products(id)
+);
+
+create table orders (
+  order_number bigint primary key,
+  order_date date not null,
+  required_date date not null,
+  shipped_date date,
+  status text not null,
+  comments text,
+  customer_number bigint,
+  foreign key (customer_number) references customers(customer_number)
+);
+
+create table customers (
+  customer_number bigint not null primary key,
+  customer_name varchar(150) not null,
+  contact_last_name varchar(150) not null,
+  contact_first_name varchar(150) not null,
+  phone varchar(20) not null,
+  address_line_1 varchar(50) not null,
+  address_line_2 varchar(150),
+  city varchar(50) not null,
+  state varchar(100) not null,
+  postal_code varchar(10) not null,
+  country varchar(50),
+  sales_rep_employee_number bigint,
+  credit_limit decimal(10,2),
+  foreign key (sales_rep_employee_number) references employees(id)
+);
+
+drop table customers;
+drop table payments;
+drop table orders;
+drop table order_details;
+
+insert into product_lines (id, text_description, html_description, image) values
+(1, 'eletrônicos', 'nossos produtos eletrônicos incluem desde equipamentos de áudio até consoles de jogos.', '<https://via.placeholder.com/150x150.png?text=eletrônicos>'),
+(2, 'itens para casa', 'nossos produtos para casa incluem móveis, decorações e mais.', '<https://via.placeholder.com/150x150.png?text=itens+para+casa>'),
+(3, 'roupas', 'nossa linha de roupas inclui uma grande variedade de estilos e tamanhos.', '<https://via.placeholder.com/150x150.png?text=roupas>');
+
+insert into payments (customer_number, check_number, payment_date, amount)
+values
+  (1001, '123456', '2021-08-01 12:34:56', 100.00),
+  (1002, '123457', '2021-08-02 10:20:30', 200.00),
+  (1003, '123458', '2021-08-03 15:45:00', 300.00);
+
+
+insert into offices (id, phone, address_line_1, address_line_2, city, state, country, postal_code, territory) values
+(1, '(123) 456-7890', '123 main st.', 'sala 101', 'anytown', 'ca', 'eua', '12345', 'oeste'),
+(2, '(987) 654-3210', '456 high st.', '3º andar', 'anycity', 'ny', 'eua', '67890', 'leste'),
+(3, '(555) 123-4567', '789 broadway', 'sala 200', 'anothercity', 'tx', 'eua', '01234', 'sul');
+
+insert into employees (id, last_name, first_name, extension, email, office_id, reports_to, job_title) values
+(1, 'smith', 'john', 'x1234', 'john.smith@example.com', 1, null, 'ceo'),
+(2, 'johnson', 'jane', 'x2345', 'jane.johnson@example.com', 1, 1, 'coo'),
+(3, 'williams', 'james', 'x3456', 'james.williams@example.com', 1, 1, 'cfo');
+
+insert into products (id, product_name, product_line_id, product_scale, product_vendor, product_description, quantity_in_stock, buy_price, msrp) values
+(1, 'tv 65 polegadas 4k ultra hd', 1, '1:10', 'samsung', 'desfrute de seus filmes e programas de tv favoritos com detalhes e clareza impressionantes.', 10, 700.00, 1000.00),
+(2, 'poltrona de couro', 2, '1:6', 'ashley furniture', 'relaxe com estilo nesta confortável poltrona de couro.', 5, 500.00, 750.00),
+(3, 'camisa social masculina', 3, '1:12', 'calvin klein', 'fique elegante e estiloso com esta clássica camisa social.', 20, 50.00, 75.00);
+
+insert into order_details (id, order_number, product_id, quantity_ordered, price_each, order_line_number) values
+(1, 10001, 1, 1, 699.99, 1),
+(2, 10001, 2, 2, 499.99, 2),
+(3, 10002, 3, 3, 49.99, 1);
+
+insert into orders (order_number, order_date, required_date, shipped_date, status, comments, customer_number) values
+(10001, '2021-08-01', '2021-08-07', '2021-08-05', 'enviado', null, 1001),
+(10002, '2021-08-02', '2021-08-09', null, 'pendente', null, 1002),
+(10003, '2021-08-03', '2021-08-10', null, 'pendente', null, 1003);
+
+insert into customers (customer_number, customer_name, contact_last_name, contact_first_name, phone, address_line_1, address_line_2, city, state, postal_code, country, sales_rep_employee_number, credit_limit)
+values
+  (1001, 'maria silva', 'silva', 'maria', '+55 11 1234-5678', 'av. paulista, 123', 'apto 456', 'são paulo', 'sp', '01311-200', 'brasil', 1, 10000),
+  (1002, 'joão santos', 'santos', 'joão', '+55 21 9876-5432', 'rua da praia, 456', null, 'rio de janeiro', 'rj', '20010-010', 'brasil', 2, 20000),
+  (1003, 'pedro oliveira', 'oliveira', 'pedro', '+55 31 9999-8888', 'rua das flores, 789', null, 'belo horizonte', 'mg', '30130-100', 'brasil', 3, 30000);
+
+select orders.*
+from orders
+join order_details on orders.order_number = order_details.order_number
+where order_details.product_id = 1;
+
+SELECT customers.customerNumber, customers.customerName, COUNT(orders.customerNumber) AS order_count
+FROM customers
+INNER JOIN orders ON customers.customerNumber = orders.customerNumber
+GROUP BY customers.customerNumber, customers.customerName
+HAVING COUNT(orders.customerNumber) > 1
+order by order_count asc;

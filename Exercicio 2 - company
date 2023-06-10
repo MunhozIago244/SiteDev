@@ -1,0 +1,146 @@
+create database company_1;
+use company_1;
+
+
+create table empregados (
+    id bigint primary key auto_increment,
+    nome varchar(100),
+    data_nascimento date,
+    cpf varchar(14),
+    genero enum('m', 'f'),
+    data_contratacao date
+);
+
+create table cargos (
+    id bigint primary key auto_increment,
+    nome varchar(100)
+);
+
+create table salarios (
+    id bigint primary key auto_increment,
+    id_empregado bigint,
+    salario_bruto decimal(10, 2),
+    periodo_inicio date,
+    periodo_fim date,
+    foreign key (id_empregado) references empregados(id)
+);
+
+create table departamentos (
+    id bigint primary key auto_increment,
+    nome varchar(100),
+    id_gerente bigint,
+    foreign key (id_gerente) references empregados(id)
+);
+
+create table empregados_departamentos (
+    id bigint primary key auto_increment,
+    id_empregado bigint,
+    id_departamento bigint,
+    periodo_inicio date,
+    periodo_fim date,
+    foreign key (id_empregado) references empregados(id),
+    foreign key (id_departamento) references departamentos(id)
+);
+
+create table cargos_empregados (
+    id bigint primary key auto_increment,
+    id_empregado bigint,
+    id_cargo bigint,
+    periodo_inicio date,
+    periodo_fim date,
+    foreign key (id_empregado) references empregados(id),
+    foreign key (id_cargo) references cargos(id)
+);
+
+create table gerentes_departamentos (
+    id int primary key auto_increment,
+    id_departamento bigint,
+    id_gerente bigint,
+    periodo_inicio date,
+    periodo_fim date,
+    foreign key (id_departamento) references departamentos(id),
+    foreign key (id_gerente) references empregados(id)
+);
+
+insert into empregados (nome, data_nascimento, cpf, genero, data_contratacao) values
+('joão da silva', '1990-01-01', '111.111.111-11', 'm', '2020-01-01'),
+('maria souza', '1995-02-02', '222.222.222-22', 'f', '2018-01-01'),
+('pedro santos', '1985-03-03', '333.333.333-33', 'm', '2010-01-01'),
+('ana oliveira', '1998-04-04', '444.444.444-44', 'f', '2019-01-01');
+
+insert into cargos (nome) values
+('analista de sistemas'),
+('programador'),
+('gerente de projetos');
+
+insert into salarios (id_empregado, salario_bruto, periodo_inicio, periodo_fim) values
+(1, 6000.00, '2021-01-01', null),
+(2, 4000.00, '2021-01-01', null),
+(3, 8000.00, '2021-01-01', null),
+(4, 3500.00, '2021-01-01', null);
+
+insert into departamentos (nome, id_gerente) values
+('ti', 1),
+('rh', 4);
+
+insert into empregados_departamentos (id_empregado, id_departamento, periodo_inicio, periodo_fim) values
+(1, 1, '2020-01-01', null),
+(2, 1, '2018-01-01', null),
+(3, 1, '2010-01-01', null),
+(4, 2, '2019-01-01', null);
+
+insert into cargos_empregados (id_empregado, id_cargo, periodo_inicio, periodo_fim) values
+(1, 1, '2020-01-01', null),
+(2, 2, '2018-01-01', null),
+(3, 3, '2010-01-01', null),
+(4, 2, '2019-01-01', null);
+
+insert into gerentes_departamentos (id_departamento, id_gerente, periodo_inicio, periodo_fim) values
+(1, 1, '2020-01-01', null),
+(2, 4, '2019-01-01', null);
+
+select empregados.nome, salarios.salario_bruto
+from empregados
+join salarios on empregados.id = salarios.id_empregado
+where salarios.salario_bruto > 5000;
+
+select empregados.nome, salarios.salario_bruto
+from empregados
+join salarios on empregados.id = salarios.id_empregado
+order by salarios.salario_bruto desc
+limit 1;
+
+select empregados.*
+from empregados
+join empregados_departamentos on empregados.id = empregados_departamentos.id_empregado
+join departamentos on empregados_departamentos.id_departamento = departamentos.id
+where departamentos.id_gerente = 1;
+
+select cargos.*
+from cargos
+join cargos_empregados on cargos.id = cargos_empregados.id_cargo
+join empregados on cargos_empregados.id_empregado = empregados.id
+where empregados.id = 1;
+
+select empregados.*
+from empregados
+join gerentes_departamentos on empregados.id = gerentes_departamentos.id_gerente
+join departamentos on gerentes_departamentos.id_departamento = departamentos.id
+where departamentos.id = 1 ;
+
+select empregados.*, cargos.nome as cargo, salarios.salario_bruto
+from empregados
+join cargos_empregados on empregados.id = cargos_empregados.id_empregado
+join cargos on cargos_empregados.id_cargo = cargos.id
+join salarios on empregados.id = salarios.id_empregado
+order by empregados.id;
+
+select distinct salario_bruto from salarios;
+
+select empregados.nome, count(empregados_departamentos.id_empregado) as total_funcionarios
+from empregados
+join empregados_departamentos on empregados.id = empregados_departamentos.id_empregado
+join departamentos on empregados_departamentos.id_departamento = departamentos.id
+where departamentos.id_gerente = empregados.id
+group by empregados.id
+having count(empregados_departamentos.id_empregado) > 5;
